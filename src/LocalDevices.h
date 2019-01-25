@@ -3,8 +3,8 @@
 
 #include <netif/etharp.h>
 #include <Ticker.h>
+#include "SimpleList.h"
 #include "MACAddress.h"
-#include "LinkedList.h"
 
 class LanDevice{
 	public:
@@ -16,13 +16,13 @@ class LanDevice{
 		this->lastOnline = esp_timer_get_time()/1000;
 	}
 	
-	LanDevice(IPAddress IP, MACAddress MAC){
+	LanDevice(const IPAddress IP, const MACAddress MAC){
 		this->IP = IP;
 		this->MAC = MAC;
 		this->lastOnline = esp_timer_get_time()/1000;
 	}
 	
-	LanDevice (const LanDevice &a){
+	LanDevice(const LanDevice &a){
 		this->IP = a.IP;
 		this->MAC = a.MAC;
 		this->lastOnline = a.lastOnline;
@@ -32,6 +32,7 @@ class LanDevice{
 		this->IP = a.IP;
 		this->MAC = a.MAC;
 		this->lastOnline = a.lastOnline;
+		return *this;
 	}
 	
 	bool operator== (const LanDevice &a){
@@ -42,19 +43,20 @@ class LanDevice{
 
 class LanDevicesClass{
 	public:
+	LanDevicesClass();
 	void begin();
-	void refresh();
+	void rescan();
 	void setActiveScan(uint8_t seconds);
 	uint8_t getActiveScan();
-	const LinkedList<LanDevice> getAPdevices();
-	const LinkedList<LanDevice> getSTAdevices();
+	void refreshAPdevices();
+	void refreshSTAdevices();
+	SimpleList<LanDevice> STAdevices;
+	SimpleList<LanDevice> APdevices;
 	
 	private:
-	LinkedList<LanDevice> STAdevices;
-	LinkedList<LanDevice> APdevices;
 	void (*onNewDevice)();
 	void (*onLostDevice)();
-	
+	static void rescan_callback( void * context );
 	uint8_t refreshInterval;
 	Ticker refreshTimer;
 

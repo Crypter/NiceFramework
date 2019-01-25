@@ -29,7 +29,7 @@ MACAddress& MACAddress::operator=(const uint8_t *address)
   return *this;
 }
 
-MACAddress& MACAddress::operator=(uint64_t address)
+MACAddress& MACAddress::operator=(const uint64_t address)
 {
   _address.qword = address;
   return *this;

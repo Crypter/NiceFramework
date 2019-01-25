@@ -42,7 +42,7 @@ class MACAddress: public Printable {
 
     // Overloaded copy operators to allow initialisation of MACAddress objects from other types
     MACAddress& operator=(const uint8_t *address);
-    MACAddress& operator=(uint64_t address);
+    MACAddress& operator=(const uint64_t address);
 
     virtual size_t printTo(Print& p) const;
     String toString() const;
