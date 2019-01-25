@@ -1,8 +1,6 @@
 #ifndef LanDevices_h
 #define LanDevices_h
 
-#include <netif/etharp.h>
-#include <Ticker.h>
 #include "SimpleList.h"
 #include "MACAddress.h"
 
@@ -57,8 +55,8 @@ class LanDevicesClass{
 	void (*onNewDevice)();
 	void (*onLostDevice)();
 	static void rescan_callback( void * context );
+	static void arp_timer_callback( void * context );
 	uint8_t refreshInterval;
-	Ticker refreshTimer;
 
 };
 extern LanDevicesClass LanDevices;

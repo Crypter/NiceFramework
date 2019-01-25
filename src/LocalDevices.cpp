@@ -1,7 +1,6 @@
 
 #include <WiFi.h>
 #include <netif/etharp.h>
-#include <Ticker.h>
 #include "LocalDevices.h"
 
 
@@ -12,20 +11,41 @@ LanDevicesClass::LanDevicesClass(){
 
 void LanDevicesClass::begin() {
 	refreshInterval=0;
+	xTaskCreatePinnedToCore(
+			reinterpret_cast<TaskFunction_t>(&LanDevicesClass::arp_timer_callback),   /* Function to implement the task */
+			"ARP_Timer", /* Name of the task */
+			500,      /* Stack size in words */
+			NULL,       /* Task input parameter */
+			1,          /* Priority of the task */
+			NULL,       /* Task handle. */
+			1);  /* Core where the task should run */
 }
 
 void LanDevicesClass::rescan_callback( void * context ){
-		((LanDevicesClass*)context)->rescan();
+	while (((LanDevicesClass*)context)->refreshInterval){
+		if (WiFi.status() != WL_CONNECTED || !netif_default){
+			delay(1000);
+		}
+		else {
+			((LanDevicesClass*)context)->rescan();
+			delay(((LanDevicesClass*)context)->refreshInterval);
+		}
+	}
+	vTaskDelete(NULL);
+}
+void LanDevicesClass::arp_timer_callback( void * context ){
+	for(;;){
+		etharp_tmr();
+		delay(ARP_TMR_INTERVAL);
+	}
 }
 
 void LanDevicesClass::rescan() {
-		if (WiFi.status() != WL_CONNECTED || !netif_default)  delay(500);
-
+		if (WiFi.status() != WL_CONNECTED || !netif_default)  return;
 		/* if (sinceTimer(arptimer) > ARP_TMR_INTERVAL) {
 		  etharp_tmr();
 		  resetTimer(arptimer);
 		} */
-
 		IPAddress subnet = WiFi.subnetMask();
 		IPAddress myip = WiFi.localIP();
 		IPAddress gwip = WiFi.gatewayIP();
@@ -53,7 +73,7 @@ void LanDevicesClass::rescan() {
 
 		  if (netif_default) etharp_request(netif_default, &toCheck);
 		  else break;
-		  delay(15);
+		  delay(25);
 		}
 		delay(2000);
 		refreshAPdevices();
@@ -63,18 +83,20 @@ void LanDevicesClass::rescan() {
 void LanDevicesClass::setActiveScan(uint8_t seconds) {
 	refreshInterval = seconds;
 	if (seconds) {
-		refreshTimer.attach((float)seconds, &LanDevicesClass::rescan_callback, (void*)(this));
-		// xTaskCreatePinnedToCore(
-			// reinterpret_cast<TaskFunction_t>(&LanDevicesClass::rescan_task),   /* Function to implement the task */
-			// "Rescan", /* Name of the task */
-			// 5000,      /* Stack size in words */
-			// NULL,       /* Task input parameter */
-			// 1,          /* Priority of the task */
-			// NULL,       /* Task handle. */
-			// 1);  /* Core where the task should run */
+		//refreshTimer.attach((float)seconds, &LanDevicesClass::rescan_callback, (void*)(this));
+		xTaskCreatePinnedToCore(
+			reinterpret_cast<TaskFunction_t>(&LanDevicesClass::rescan_callback),   /* Function to implement the task */
+			"Rescan", /* Name of the task */
+			5000,      /* Stack size in words */
+			(void*)(this),       /* Task input parameter */
+			1,          /* Priority of the task */
+			NULL,       /* Task handle. */
+			1);  /* Core where the task should run */
 
 	}
-	else refreshTimer.detach();
+	// else {
+		// refreshTimer.detach();
+	// }
 }
 
 uint8_t LanDevicesClass::getActiveScan() {

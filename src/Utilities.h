@@ -19,6 +19,15 @@ String uptime();
 
 int64_t uptimeSec();
 
+void NTPAutoUpdate(int8_t GMT, uint16_t minutes);
+
+void NTPUpdate(int8_t GMT);
+
+private:
+static void timesync( void * parameter );
+static uint16_t NTP_delay;
+static int8_t GMT;
+
 };
 extern UtilitiesClass Utilities;
   
