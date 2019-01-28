@@ -14,11 +14,11 @@ void LanDevicesClass::begin() {
 	xTaskCreatePinnedToCore(
 			reinterpret_cast<TaskFunction_t>(&LanDevicesClass::arp_timer_callback),   /* Function to implement the task */
 			"ARP_Timer", /* Name of the task */
-			500,      /* Stack size in words */
+			2000,      /* Stack size in words */
 			NULL,       /* Task input parameter */
 			1,          /* Priority of the task */
 			NULL,       /* Task handle. */
-			1);  /* Core where the task should run */
+			APP_CPU_NUM);  /* Core where the task should run */
 }
 
 void LanDevicesClass::rescan_callback( void * context ){
@@ -91,7 +91,7 @@ void LanDevicesClass::setActiveScan(uint8_t seconds) {
 			(void*)(this),       /* Task input parameter */
 			1,          /* Priority of the task */
 			NULL,       /* Task handle. */
-			1);  /* Core where the task should run */
+			APP_CPU_NUM);  /* Core where the task should run */
 
 	}
 	// else {
