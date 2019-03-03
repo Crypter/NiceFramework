@@ -23,6 +23,8 @@ void NTPAutoUpdate(int8_t GMT, uint16_t minutes);
 
 void NTPUpdate(int8_t GMT);
 
+String timestamp();
+
 String getResetReason();
 
 private:

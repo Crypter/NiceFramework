@@ -33,6 +33,16 @@ int64_t UtilitiesClass::uptimeSec(){
   return esp_timer_get_time()/1000000;
 }
 
+String UtilitiesClass::timestamp(){
+	struct tm thetime;
+	char buffer[32];
+	
+	getLocalTime(&thetime, 0);
+	strftime(buffer, sizeof(buffer), "%a %d/%m/%Y %H:%M:%S", &thetime);
+	
+	return String(buffer);
+}
+
 String UtilitiesClass::getResetReason(){
 	RESET_REASON rtc_reset_reason = rtc_get_reset_reason(PRO_CPU_NUM);
 	String reason;
